@@ -1,0 +1,540 @@
+<html><head><base href="." />
+<meta charset="UTF-8">
+<title>Roblox Snake Game - Classic & Campaign</title>
+<style>
+  body {
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #232527;
+    color: #fff;
+    font-family: 'HCo Gotham SSm', Arial, sans-serif;
+  }
+
+  .opening-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #232527 0%, #1a1c1e 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .roblox-logo {
+    width: 400px;
+    height: 120px;
+    margin-bottom: 20px;
+    animation: glow 2s infinite alternate;
+  }
+
+  @keyframes glow {
+    from { filter: drop-shadow(0 0 2px #00A2FF); }
+    to { filter: drop-shadow(0 0 8px #00A2FF); }
+  }
+
+  .opening-logo {
+    width: 300px;
+    height: 300px;
+    margin-bottom: 30px;
+    animation: pulse 2s infinite;
+  }
+
+  .opening-text {
+    font-size: 48px;
+    color: #00A2FF;
+    text-shadow: 0 0 20px rgba(0, 162, 255, 0.7);
+    margin-bottom: 30px;
+    animation: slideIn 1s ease-out;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes slideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .play-button {
+    background: #00A2FF;
+    border: none;
+    color: white;
+    padding: 20px 40px;
+    font-size: 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: fadeIn 1s ease-out 0.5s both;
+  }
+
+  .play-button:hover {
+    background: #0088CC;
+    transform: scale(1.1);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  h1 {
+    color: #00A2FF;
+    text-shadow: 0 0 10px rgba(0, 162, 255, 0.5);
+  }
+
+  #gameCanvas {
+    border: 4px solid #00A2FF;
+    border-radius: 10px;
+    margin: 20px;
+    box-shadow: 0 0 20px rgba(0, 162, 255, 0.3);
+  }
+
+  .controls { margin: 20px; text-align: center; }
+
+  button {
+    background: #00A2FF;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    margin: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  button:hover {
+    background: #0088CC;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .score-board { font-size: 24px; margin: 20px; color: #00A2FF; }
+  .campaign-info { font-size: 24px; margin: 20px; color: #00A2FF; font-weight: bold; }
+  .game-over { font-size: 24px; margin: 20px; color: #00A2FF; font-weight: bold; }
+  #robux { font-size: 24px; margin: 20px; color: #00A2FF; }
+
+  .joshua-text {
+    font-size: 72px;
+    color: #00A2FF;
+    text-shadow: 0 0 30px rgba(0, 162, 255, 0.9);
+    margin-bottom: 40px;
+    animation: joshuaReveal 2s ease-out;
+    font-weight: bold;
+    letter-spacing: 4px;
+  }
+
+  @keyframes joshuaReveal {
+    0% { 
+      transform: scale(0.1) rotate(-360deg);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2) rotate(10deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+  }
+
+  .joshua-presents {
+    font-size: 24px;
+    color: #ffffff;
+    margin-bottom: 30px;
+    opacity: 0;
+    animation: fadeSlideUp 1s ease-out 2s forwards;
+  }
+
+  @keyframes fadeSlideUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .snake-head {
+    width: 18px;
+    height: 18px;
+    position: absolute;
+    background: #00A2FF;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 162, 255, 0.5);
+  }
+
+  .snake-body {
+    width: 18px;
+    height: 18px;
+    position: absolute;
+    background: #0088CC;
+    border-radius: 4px;
+    box-shadow: 0 0 5px rgba(0, 136, 204, 0.3);
+  }
+
+  .roblox-food {
+    width: 18px;
+    height: 18px;
+    position: absolute;
+    background: #FF0000;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .roblox-food::before {
+    content: "R$";
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+  }
+
+  .game-controls {
+    display: flex;
+    gap: 10px;
+    margin: 20px;
+  }
+
+  .game-over {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(35, 37, 39, 0.95);
+    padding: 40px;
+    border-radius: 20px;
+    border: 4px solid #00A2FF;
+    text-align: center;
+    z-index: 100;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .game-over h2 {
+    color: #00A2FF;
+    font-size: 36px;
+    margin-bottom: 20px;
+  }
+
+  .game-over p {
+    font-size: 24px;
+    margin: 10px 0;
+  }
+
+  .restart-button {
+    background: #FF0000;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    margin: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .restart-button:hover {
+    background: #CC0000;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+  }
+</style>
+</head>
+<body>
+  <div class="opening-screen" id="openingScreen">
+    <div class="joshua-text">JOSHUA'S</div>
+    <div class="joshua-presents">presents</div>
+    
+    <svg class="roblox-logo" viewBox="0 0 400 120">
+      <path fill="#00A2FF" d="M82 25h-16c-2.2 0-4 1.8-4 4v62c0 2.2 1.8 4 4 4h16c2.2 0 4-1.8 4-4V29c0-2.2-1.8-4-4-4zM24 25H8c-2.2 0-4 1.8-4 4v62c0 2.2 1.8 4 4 4h16c2.2 0 4-1.8 4-4V29c0-2.2-1.8-4-4-4zM53 25c-19.3 0-35 15.7-35 35s15.7 35 35 35 35-15.7 35-35-15.7-35-35-35z"/>
+      <text x="120" y="80" fill="#00A2FF" style="font-size: 60px; font-weight: bold; font-family: Arial;">ROBLOX</text>
+    </svg>
+    <svg class="opening-logo" viewBox="00 0 32 32">
+      <path fill="#00A2FF" d="M16 4C9.383 4 4 9.383 4 16s5.383 12 12 12 12-5.383 12-12S22.617 4 16 4zm0 2c5.535 0 10 4.465 10 10s-4.465 10-10 10S6 21.535 6 16 10.465 6 16 6zm-2 4v4h4v4h-4v4h4v-4h4v-4h-4v-4h-4z"/>
+    </svg>
+    <div class="opening-text">ROBLOX SNAKE</div>
+    <button class="play-button" onclick="startGame()">PLAY NOW!</button>
+  </div>
+
+  <h1>Roblox Snake</h1>
+  <div id="robux">
+    <svg class="robux-icon" viewBox="0 0 32 32" fill="#00A2FF">
+      <path d="M16 4C9.383 4 4 9.383 4 16s5.383 12 12 12 12-5.383 12-12S22.617 4 16 4zm0 2c5.535 0 10 4.465 10 10s-4.465 10-10 10S6 21.535 6 16 10.465 6 16 6zm-2 4v4h4v4h-4v4h4v-4h4v-4h-4v-4h-4z"/>
+    </svg>
+    <span id="robuxCount">0</span>
+  </div>
+  <div class="controls">
+    <div class="game-controls">
+      <button onclick="startClassicMode()">Classic Mode</button>
+      <button onclick="startCampaignMode()">Campaign Mode</button>
+      <button class="restart-button" onclick="restartGame()">Restart Game</button>
+    </div>
+  </div>
+  <div class="campaign-info" id="campaignInfo">
+    Level: <span id="level">1</span> | Target Score: <span id="target">10</span>
+  </div>
+  <div class="score-board">Score: <span id="score">0</span></div>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <div class="game-over" id="gameOver">
+    <h2>Game Over!</h2>
+    <p>Final Score: <span id="finalScore">0</span></p>
+    <p>Robux Earned: <span id="finalRobux">0</span></p>
+    <button class="restart-button" onclick="restartGame()">Play Again</button>
+  </div>
+
+<script>
+function startGame() {
+    setTimeout(() => {
+        document.getElementById('openingScreen').style.display = 'none';
+        startClassicMode();
+    }, 4000);
+}
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let snake = [];
+let food = {};
+let direction = 'right';
+let gameLoop;
+let score = 0;
+let robux = 0;
+let gameMode = 'classic';
+let level = 1;
+let targetScore = 10;
+let gridSize = 20;
+let speed = 150;
+
+function initGame() {
+    snake = [
+        {x: 3 * gridSize, y: 0},
+        {x: 2 * gridSize, y: 0},
+        {x: gridSize, y: 0},
+        {x: 0, y: 0}
+    ];
+    direction = 'right';
+    score = 0;
+    updateScore();
+    createFood();
+}
+
+function startClassicMode() {
+    gameMode = 'classic';
+    document.getElementById('campaignInfo').style.display = 'none';
+    level = 1;
+    speed = 150;
+    initGame();
+    if (gameLoop) clearInterval(gameLoop);
+    gameLoop = setInterval(gameStep, speed);
+}
+
+function startCampaignMode() {
+    gameMode = 'campaign';
+    document.getElementById('campaignInfo').style.display = 'block';
+    level = 1;
+    targetScore = 10;
+    speed = 150;
+    updateCampaignInfo();
+    initGame();
+    if (gameLoop) clearInterval(gameLoop);
+    gameLoop = setInterval(gameStep, speed);
+}
+
+function updateCampaignInfo() {
+    document.getElementById('level').textContent = level;
+    document.getElementById('target').textContent = targetScore;
+}
+
+function createFood() {
+    food = {
+        x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
+        y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize
+    };
+    
+    if (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
+        createFood();
+    }
+}
+
+function gameStep() {
+    let newHead = {x: snake[0].x, y: snake[0].y};
+
+    switch(direction) {
+        case 'right': newHead.x += gridSize; break;
+        case 'left': newHead.x -= gridSize; break;
+        case 'up': newHead.y -= gridSize; break;
+        case 'down': newHead.y += gridSize; break;
+    }
+
+    if (newHead.x >= canvas.width || newHead.x < 0 || 
+        newHead.y >= canvas.height || newHead.y < 0) {
+        gameOver();
+        return;
+    }
+
+    if (snake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
+        gameOver();
+        return;
+    }
+
+    snake.unshift(newHead);
+
+    if (newHead.x === food.x && newHead.y === food.y) {
+        score++;
+        robux += 5;
+        document.getElementById('robuxCount').textContent = robux;
+        updateScore();
+        createFood();
+        
+        if (gameMode === 'campaign' && score >= targetScore) {
+            levelUp();
+        }
+    } else {
+        snake.pop();
+    }
+
+    draw();
+}
+
+function levelUp() {
+    level++;
+    targetScore += 5;
+    speed = Math.max(50, speed - 20);
+    updateCampaignInfo();
+    clearInterval(gameLoop);
+    gameLoop = setInterval(gameStep, speed);
+}
+
+function draw() {
+    // Clear canvas
+    ctx.fillStyle = '#232527';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw snake with Roblox character styling
+    snake.forEach((segment, index) => {
+        if (index === 0) {
+            // Draw head
+            ctx.fillStyle = '#00A2FF';
+            ctx.beginPath();
+            ctx.roundRect(segment.x, segment.y, gridSize - 2, gridSize - 2, 4);
+            ctx.fill();
+            
+            // Draw eyes
+            ctx.fillStyle = 'white';
+            const eyeSize = 4;
+            if (direction === 'right') {
+                ctx.fillRect(segment.x + 12, segment.y + 4, eyeSize, eyeSize);
+                ctx.fillRect(segment.x + 12, segment.y + 10, eyeSize, eyeSize);
+            } else if (direction === 'left') {
+                ctx.fillRect(segment.x + 2, segment.y + 4, eyeSize, eyeSize);
+                ctx.fillRect(segment.x + 2, segment.y + 10, eyeSize, eyeSize);
+            } else if (direction === 'up') {
+                ctx.fillRect(segment.x + 4, segment.y + 2, eyeSize, eyeSize);
+                ctx.fillRect(segment.x + 10, segment.y + 2, eyeSize, eyeSize);
+            } else if (direction === 'down') {
+                ctx.fillRect(segment.x + 4, segment.y + 12, eyeSize, eyeSize);
+                ctx.fillRect(segment.x + 10, segment.y + 12, eyeSize, eyeSize);
+            }
+        } else {
+            // Draw body segments with Roblox styling
+            ctx.fillStyle = '#0088CC';
+            ctx.beginPath();
+            ctx.roundRect(segment.x, segment.y, gridSize - 2, gridSize - 2, 4);
+            ctx.fill();
+            
+            // Add shading
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.fillRect(segment.x + 2, segment.y + 2, gridSize - 6, gridSize - 6);
+        }
+    });
+
+    // Draw Robux food
+    ctx.fillStyle = '#FF0000';
+    ctx.beginPath();
+    ctx.roundRect(food.x, food.y, gridSize - 2, gridSize - 2, 4);
+    ctx.fill();
+    
+    // Draw R$ symbol on food
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 10px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('R$', food.x + gridSize/2 - 1, food.y + gridSize/2);
+}
+
+function updateScore() {
+    document.getElementById('score').textContent = score;
+}
+
+function gameOver() {
+    clearInterval(gameLoop);
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('finalRobux').textContent = robux;
+    document.getElementById('gameOver').style.display = 'block';
+}
+
+function restartGame() {
+    document.getElementById('gameOver').style.display = 'none';
+    // Show opening screen again
+    document.getElementById('openingScreen').style.display = 'flex';
+    
+    // Reset robux count for new game
+    robux = 0;
+    document.getElementById('robuxCount').textContent = '0';
+    
+    // Clear any existing game loop
+    if (gameLoop) {
+        clearInterval(gameLoop);
+    }
+    
+    // Reset score
+    score = 0;
+    updateScore();
+    
+    // Reset game mode and level info
+    gameMode = 'classic';
+    level = 1;
+    targetScore = 10;
+    speed = 150;
+    document.getElementById('campaignInfo').style.display = 'none';
+}
+
+document.addEventListener('keydown', (e) => {
+    switch(e.key) {
+        case 'ArrowUp':
+            if (direction !== 'down') direction = 'up';
+            break;
+        case 'ArrowDown':
+            if (direction !== 'up') direction = 'down';
+            break;
+        case 'ArrowLeft':
+            if (direction !== 'right') direction = 'left';
+            break;
+        case 'ArrowRight':
+            if (direction !== 'left') direction = 'right';
+            break;
+    }
+});
+
+</script>
+</body></html>
